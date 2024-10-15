@@ -53,6 +53,7 @@ This project depends on the following custom libraries:
 1. Open the main.ino file in Arduino IDE.
 2. Ensure the correct board and port are selected.
   - `Tools > Board: > ESP32 Arduino > Adafruit ESP32 Feather`
+  - `Tools > Port: > The port your ESP32 is connected to`
 3. Upload the code to your ESP32.
 4. Check Serial Monitor
 
