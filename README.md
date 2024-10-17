@@ -37,11 +37,11 @@ You will need the following software installed:
 ## Library Dependencies
 This project depends on the following custom libraries:
 
-1. **Library 1: multiplxise**: [GitHub Link to Library 1]
+1. **Library 1: multiplxise**:
   - Download the multiplexise.zip from this repository
   - `Sketch > Include Library > Add .ZIP Library`
   - Select the multiplexise.zip that you downloaded
-2. **Library 2:ESP Google Sheet Client**: [GitHub Link to Library 2]
+2. **Library 2:ESP Google Sheet Client**: 
   - `Sketch > Include Library > Manage Libraries`
   - Search "ESP Google Sheet Client"
   - "Install"
