@@ -49,7 +49,7 @@ void tokenStatusCallback(TokenInfo info);
 
 // Loop variables
 bool collect_data = true;
-int counter = 1; // The number of data points and the row number to input values in Gsheet
+int counter = 998; // The number of data points and the row number to input values in Gsheet
 bool initialized = false;
 FirebaseJson response; // Create the object to handle responses from the API calls
 FirebaseJson valueRange; // Object to send through API calls
@@ -106,48 +106,41 @@ void setup() {
 }
 
 void loop() {
-  // Call ready() repeatedly in loop for authentication checking and processing
-  bool ready = GSheet.ready();
+    bool ready = GSheet.ready();
 
-  if (ready && counter <= 10) {
-    Serial.printf("Updating row: %d\n", counter);
-
-        Serial.println("\nUpdate spreadsheet values...");
-        Serial.println("------------------------------");
+    if (ready) {
         if (!getLocalTime(&timeinfo)) {
             Serial.println("Failed to obtain time");
             return;
         }
-        Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+
         strftime(timeStringBuff, sizeof(timeStringBuff), "%A, %B %d %Y %H:%M:%S", &timeinfo);
         asString = timeStringBuff;
-        asString.replace(" ", "-");
 
-        // Column 1 is time
-        sprintf(buffer, "values/[%d]/[0]", counter);
-        valueRange.set(buffer, asString);
+        // Create a new row to append
+        FirebaseJson valueRange;
+        valueRange.set("values/[0]/[0]", asString);
 
-        // Column 2 is channel 1
-        SensValue = davispcbv2().read_pair(1, -1); // // Get Ch1 float
+        SensValue = davispcbv2().read_pair(1, -1);
         dtostrf(SensValue, sizeof(voltageStr), 3, voltageStr);
-        sprintf(buffer, "values/[%d]/[1]", counter);
-        valueRange.set(buffer, voltageStr);
+        valueRange.set("values/[0]/[1]", voltageStr);
 
-        // Column 3 is channel 2
-        SensValue = davispcbv2().read_pair(2, -1); // Get Ch2 float
-        dtostrf(SensValue, sizeof(voltageStr), 3, voltageStr); // convert to string
-        sprintf(buffer, "values/[%d]/[2]", counter); // Set location in spreadsheet
-        valueRange.set(buffer, voltageStr); // Save location and value to write 
+        SensValue = davispcbv2().read_pair(2, -1);
+        dtostrf(SensValue, sizeof(voltageStr), 3, voltageStr);
+        valueRange.set("values/[0]/[2]", voltageStr);
 
-        GSheet.values.update(&response /* returned response */, spreadsheetId /* spreadsheet Id to update */, "Sheet1" /* range to update */, &valueRange /* data to update */);
-        response.toString(Serial, true);
+        // Append data to the first available empty row
+        GSheet.values.append(&response, spreadsheetId, "Sheet1!A:C", &valueRange);
+        response.toString(Serial, true);  // Print the API response for debugging
         Serial.println();
-        
-        delay(500);
-     }
 
-     counter++;
+        delay(500);  // Optional: Avoid hitting rate limits
+    } else {
+    Serial.println("Google Sheets client not ready. Retrying...");
+    delay(1000);  // Retry after a brief delay
+  }
 }
+
 
 void tokenStatusCallback(TokenInfo info) {
   if (info.status == esp_signer_token_status_error) {
