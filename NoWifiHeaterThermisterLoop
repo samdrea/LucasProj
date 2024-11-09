@@ -1,0 +1,137 @@
+// working sketch of logging the three stages of thermister reading
+// to serial monitor
+// No wifi
+
+
+#define HEATER 18
+#define THERMOUT 39
+#define THERMPOWER 5
+//#define HEATERVOLTAGE 10 
+
+
+void switchHeater(int HEATERCONTROL_PIN, char keyword[]){
+  
+  if(strcmp(keyword, "on") == 0 || strcmp(keyword, "On") == 0 ){
+    digitalWrite(HEATERCONTROL_PIN, HIGH);
+    //Serial.println("Heater On");
+    return;
+  }
+  else{
+    digitalWrite(HEATERCONTROL_PIN, LOW);
+    //Serial.println("Heater Off");
+    return;
+  }
+  
+}
+
+
+int readThermistor(int THERMPOWER_PIN, int THERMREAD_PIN, int pre_delay = 1, int post_delay = 100){
+
+  digitalWrite(THERMPOWER_PIN, HIGH);
+  delay(pre_delay);
+  int measurement = analogRead(THERMREAD_PIN);
+  delay(post_delay);
+  //digitalWrite(THERMPOWER_PIN,LOW);
+
+  return measurement; 
+}
+
+// measurebaseline voltage for 5 seconds at 50 samples per second, append the data to an array 
+// turn the heater on 
+// measure transient voltage for 5 seconds at 50 samples per second, append the data to an array
+// turn the heater off
+// measure transient voltage for 5 seconds at 50 samples per second, append the data to an array
+
+void cycleHeater(int ise_ch, int re_ch, int duration = 3000){
+
+  int num_cycles = 25;
+  int sampletime = 200; 
+  switchHeater(HEATER, "off");
+  //davispcbv2().read_pair(ise_ch, re_ch);
+  //sensors.requestTemperatures(); 
+  //float comm_temp = sensors.getTempCByIndex(0);
+ 
+  //float baseline[num_cycles];
+  float baselineT[num_cycles];
+
+  for(int i = 0; i < num_cycles; i++){
+    //baseline[i] = davispcbv2().read_pair(ise_ch, re_ch, sampletime);
+    
+
+    baselineT[i] = readThermistor(THERMPOWER, THERMOUT, 200, 1);
+  }
+  //Serial.println("Heater On");
+  delay(200);
+//  int heatervoltage = analogRead(HEATERVOLTAGE);
+  switchHeater(HEATER, "on");
+
+
+  float transient[num_cycles];
+  float transientT[num_cycles];
+
+  for(int i = 0; i < num_cycles; i++){
+    //transient[i] = davispcbv2().read_pair(ise_ch, re_ch, sampletime);
+    transientT[i] = readThermistor(THERMPOWER, THERMOUT, 200, 1);
+    
+  }
+  
+  switchHeater(HEATER, "off");
+  //Serial.println("Heater Off");
+  float settling[num_cycles];
+  float settlingT[num_cycles];
+  for(int i = 0; i < num_cycles; i++){
+    //settling[i] = davispcbv2().read_pair(ise_ch, re_ch, sampletime);
+    settlingT[i] = readThermistor(THERMPOWER, THERMOUT, 200, 1);
+  }
+
+  
+  for(int i = 0; i < num_cycles; i++){
+
+    //Serial.print(baseline[i],8);
+    //Serial.print(",");
+    //Serial.print(transient[i],8);
+    //Serial.print(",");
+    //Serial.print(settling[i],8);
+    //Serial.print(",");
+    //Serial.print(comm_temp,8);
+    //Serial.print(",");
+    //Serial.print(heatervoltage,8);
+
+    Serial.print(baselineT[i],8);
+    Serial.print(",");
+    Serial.print(transientT[i],8);
+    Serial.print(",");
+    Serial.print(settlingT[i],8);
+    Serial.print(",");
+
+    Serial.println();
+
+  }
+  //sensors.requestTemperatures(); 
+  //Serial.print(sensors.getTempCByIndex(0));
+
+}
+
+
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(HEATER, OUTPUT);
+  pinMode(THERMPOWER, OUTPUT); 
+  pinMode(THERMOUT, INPUT);
+  //Wire.begin();
+
+}
+
+
+void loop() {
+
+  //Serial.println(readThermistor(THERMPOWER, THERMOUT));
+
+  cycleHeater(1,1);
+  delay(1000);
+  ///Serial.print(1);
+  
+
+
+}
